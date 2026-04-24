@@ -1,0 +1,1326 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Pythonic — Design System v1</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ─── TOKENS ─────────────────────────────────────── */
+:root {
+  --navy-950: #020E18;
+  --navy-900: #041624;
+  --navy-800: #062133;   /* Velorah base — main bg */
+  --navy-700: #0A3050;
+  --navy-600: #144570;
+
+  --blue-600: #0060CC;
+  --blue-500: #0A84FF;   /* primary brand */
+  --blue-400: #3AA0FF;
+  --blue-300: #7EC3FF;
+  --blue-100: #D0EBFF;
+
+  --orange-600: #CC6A00;
+  --orange-500: #FF9500;  /* accent brand */
+  --orange-400: #FFB340;
+  --orange-100: #FFE4A8;
+
+  --green-500:  #30D158;
+  --red-500:    #FF453A;
+  --purple-500: #BF5AF2;
+  --yellow-500: #FFD60A;
+
+  --ink-100: #FFFFFF;
+  --ink-90:  #EAF0F8;
+  --ink-70:  #B0BEC9;
+  --ink-50:  #768797;
+  --ink-30:  #455060;
+
+  --glass-10:  rgba(255,255,255,0.10);
+  --glass-06:  rgba(255,255,255,0.06);
+  --glass-03:  rgba(255,255,255,0.03);
+  --glass-border: rgba(255,255,255,0.10);
+
+  --r-sm:   8px;
+  --r-md:  14px;
+  --r-lg:  20px;
+  --r-xl:  28px;
+  --r-pill: 999px;
+
+  --shadow-sm:  0 4px 12px -4px rgba(0,0,0,0.4);
+  --shadow-md:  0 12px 32px -10px rgba(0,0,0,0.6);
+  --shadow-lg:  0 28px 60px -20px rgba(0,0,0,0.75);
+  --shadow-blue: 0 16px 40px -12px rgba(10,132,255,0.55);
+  --shadow-orange: 0 16px 40px -12px rgba(255,149,0,0.5);
+
+  --font-display: 'Instrument Serif', 'Times New Roman', serif;
+  --font-body:    'Inter', system-ui, sans-serif;
+  --font-mono:    'JetBrains Mono', ui-monospace, Menlo, monospace;
+}
+
+/* ─── RESET ─────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--navy-800);
+  color: var(--ink-100);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+/* Ambient bg glow */
+body::after {
+  content: '';
+  position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background:
+    radial-gradient(900px 600px at 90% -5%, rgba(10,132,255,0.22), transparent 65%),
+    radial-gradient(700px 500px at -5% 30%, rgba(255,149,0,0.12), transparent 65%);
+}
+
+/* ─── LAYOUT ─────────────────────────────────────── */
+.layout { display: grid; grid-template-columns: 240px 1fr; min-height: 100vh; position: relative; z-index: 1; }
+aside {
+  position: sticky; top: 0; height: 100vh; overflow-y: auto;
+  background: rgba(4,22,36,0.85);
+  backdrop-filter: blur(20px);
+  border-right: 1px solid var(--glass-border);
+  padding: 32px 0;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.1) transparent;
+}
+main { padding: 60px 64px 120px; max-width: 1200px; }
+
+/* Sidebar nav */
+.sidebar-logo {
+  display: flex; align-items: center; gap: 10px;
+  padding: 0 24px 28px;
+  border-bottom: 1px solid var(--glass-border);
+  margin-bottom: 20px;
+  font-family: var(--font-display); font-size: 22px; color: var(--ink-100);
+  text-decoration: none;
+}
+.sidebar-logo .icon {
+  width: 32px; height: 32px; border-radius: 9px;
+  background: linear-gradient(135deg, var(--blue-400), var(--blue-500));
+  display: grid; place-items: center; font-size: 18px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.35), var(--shadow-blue);
+}
+.nav-section { padding: 6px 24px; margin-top: 8px; }
+.nav-section-label {
+  font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--ink-50); font-weight: 600; margin-bottom: 6px; display: block;
+}
+.nav-link {
+  display: block; padding: 7px 10px; border-radius: var(--r-sm);
+  color: var(--ink-70); font-size: 13.5px; text-decoration: none;
+  transition: background 0.2s, color 0.2s;
+  margin-bottom: 1px;
+}
+.nav-link:hover, .nav-link.active { background: var(--glass-06); color: var(--ink-100); }
+.nav-link.active { color: var(--blue-400); }
+
+/* ─── SECTION ─────────────────────────────────────── */
+.ds-section { margin-bottom: 100px; }
+.ds-section-header { margin-bottom: 42px; padding-bottom: 24px; border-bottom: 1px solid var(--glass-border); }
+.ds-section-tag {
+  font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--blue-400); font-weight: 600; margin-bottom: 10px; display: block;
+}
+.ds-section-title {
+  font-family: var(--font-display); font-size: clamp(36px, 4vw, 54px);
+  line-height: 1; letter-spacing: -0.03em; font-weight: 400;
+}
+.ds-section-desc { color: var(--ink-70); margin-top: 14px; max-width: 620px; line-height: 1.65; font-size: 15px; }
+
+/* grid helpers */
+.grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+.grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+.grid-auto { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
+.flex-wrap { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.col { display: flex; flex-direction: column; gap: 16px; }
+
+/* ─── TOKENS CARDS ─────────────────────────────────── */
+.token-card {
+  background: var(--glass-06);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--r-md);
+  padding: 16px;
+  font-size: 13px;
+}
+.token-swatch {
+  width: 100%; height: 64px; border-radius: var(--r-sm); margin-bottom: 12px;
+  border: 1px solid rgba(255,255,255,0.08);
+}
+.token-name { font-weight: 600; color: var(--ink-90); margin-bottom: 2px; }
+.token-value { font-family: var(--font-mono); font-size: 12px; color: var(--ink-50); }
+.token-desc  { font-size: 12px; color: var(--ink-50); margin-top: 4px; }
+
+/* Color scale row */
+.scale-row { display: flex; border-radius: var(--r-md); overflow: hidden; height: 60px; border: 1px solid var(--glass-border); }
+.scale-cell { flex: 1; display: grid; place-items: end; padding: 6px 8px; }
+.scale-label { font-size: 10px; font-family: var(--font-mono); font-weight: 500; }
+
+/* ─── TYPE ─────────────────────────────────────── */
+.type-specimen {
+  background: var(--glass-06);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--r-lg); padding: 28px 32px;
+  display: flex; align-items: baseline; gap: 24px;
+}
+.type-meta { min-width: 140px; color: var(--ink-50); font-size: 12px; font-family: var(--font-mono); line-height: 1.8; }
+
+/* ─── GLASS / LIQUID GLASS ─────────────────────────── */
+.liquid-glass {
+  background: rgba(255,255,255,0.01);
+  backdrop-filter: blur(10px) saturate(140%);
+  -webkit-backdrop-filter: blur(10px) saturate(140%);
+  box-shadow: inset 0 1px 1px rgba(255,255,255,0.14), var(--shadow-md);
+  position: relative; overflow: hidden;
+  transition: transform 0.4s cubic-bezier(.2,.8,.2,1), box-shadow 0.4s;
+}
+.liquid-glass::before {
+  content: ''; position: absolute; inset: 0; border-radius: inherit; padding: 1.4px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.18) 22%,
+    rgba(255,255,255,0) 45%, rgba(255,255,255,0) 60%, rgba(255,255,255,0.18) 80%, rgba(255,255,255,0.55) 100%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor; mask-composite: exclude; pointer-events: none;
+}
+.glass-card {
+  background: linear-gradient(180deg, var(--glass-06), var(--glass-03));
+  backdrop-filter: blur(14px) saturate(150%);
+  -webkit-backdrop-filter: blur(14px) saturate(150%);
+  border-radius: var(--r-lg);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden; position: relative;
+}
+
+/* ─── BUTTONS ─────────────────────────────────────── */
+.btn { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; border: none; font-family: var(--font-body); font-weight: 500; letter-spacing: -0.01em; transition: transform 0.3s cubic-bezier(.2,.8,.2,1), box-shadow 0.3s, background 0.2s; position: relative; overflow: hidden; }
+.btn:hover { transform: translateY(-2px) scale(1.03); }
+
+.btn-primary {
+  background: linear-gradient(180deg, var(--blue-400), var(--blue-500));
+  color: #fff; border-radius: var(--r-pill);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.35), inset 0 -6px 14px rgba(0,60,140,0.35), var(--shadow-blue);
+}
+.btn-primary:hover { box-shadow: inset 0 1px 0 rgba(255,255,255,0.45), inset 0 -6px 14px rgba(0,60,140,0.35), 0 24px 50px -10px rgba(10,132,255,0.7); }
+
+.btn-orange {
+  background: linear-gradient(180deg, var(--orange-400), var(--orange-500));
+  color: #fff; border-radius: var(--r-pill);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.35), var(--shadow-orange);
+}
+.btn-ghost {
+  background: transparent; color: var(--ink-100); border-radius: var(--r-pill);
+  border: 1px solid rgba(255,255,255,0.16);
+}
+.btn-ghost:hover { background: var(--glass-06); border-color: rgba(255,255,255,0.3); }
+
+.btn-glass { background: rgba(255,255,255,0.01); color: var(--ink-100); border-radius: var(--r-pill); }
+
+.btn-sm  { padding: 8px 18px;  font-size: 13px; }
+.btn-md  { padding: 12px 24px; font-size: 14px; }
+.btn-lg  { padding: 16px 32px; font-size: 15px; }
+.btn-xl  { padding: 20px 44px; font-size: 16px; }
+
+.btn-shine { position: absolute; inset: 0; background: linear-gradient(110deg, transparent 30%, rgba(255,255,255,0.32) 50%, transparent 70%); transform: translateX(-100%); transition: transform 0.9s cubic-bezier(.2,.8,.2,1); pointer-events: none; }
+.btn:hover .btn-shine { transform: translateX(100%); }
+
+/* ─── BADGES / CHIPS ─────────────────────────────── */
+.chip { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: var(--r-pill); font-size: 12px; font-weight: 500; letter-spacing: 0.01em; border: 1px solid var(--glass-border); backdrop-filter: blur(8px); }
+.chip-blue   { background: rgba(10,132,255,0.14); color: var(--blue-300); border-color: rgba(10,132,255,0.3); }
+.chip-orange { background: rgba(255,149,0,0.14);  color: var(--orange-400); border-color: rgba(255,149,0,0.3); }
+.chip-green  { background: rgba(48,209,88,0.14);  color: #6FE08C; border-color: rgba(48,209,88,0.3); }
+.chip-red    { background: rgba(255,69,58,0.14);   color: #FF8075; border-color: rgba(255,69,58,0.3); }
+.chip-glass  { background: var(--glass-06); color: var(--ink-70); }
+.chip .dot   { width: 6px; height: 6px; border-radius: 999px; animation: pulse 2s ease-in-out infinite; }
+.dot-blue   { background: var(--blue-500); box-shadow: 0 0 10px rgba(10,132,255,0.8); }
+.dot-orange { background: var(--orange-500); box-shadow: 0 0 10px rgba(255,149,0,0.8); }
+.dot-green  { background: var(--green-500); box-shadow: 0 0 10px rgba(48,209,88,0.8); }
+@keyframes pulse { 50% { opacity: 0.4; transform: scale(0.85); } }
+
+/* ─── CARDS ─────────────────────────────────────── */
+.card { border-radius: var(--r-lg); padding: 24px; }
+.card-flat { background: var(--glass-06); border: 1px solid var(--glass-border); }
+.card-raised { background: linear-gradient(180deg, var(--glass-06), var(--glass-03)); border: 1px solid var(--glass-border); box-shadow: var(--shadow-md); }
+.card-glow-blue  { background: linear-gradient(135deg, rgba(10,132,255,0.18), rgba(10,132,255,0.06)); border: 1px solid rgba(10,132,255,0.3); box-shadow: 0 0 40px -16px rgba(10,132,255,0.6); }
+.card-glow-orange{ background: linear-gradient(135deg, rgba(255,149,0,0.18), rgba(255,149,0,0.06)); border: 1px solid rgba(255,149,0,0.3); box-shadow: 0 0 40px -16px rgba(255,149,0,0.6); }
+.card:hover { transform: translateY(-4px); transition: transform 0.4s cubic-bezier(.2,.8,.2,1); }
+
+/* ─── PROGRESS ─────────────────────────────────────── */
+.progress-track { height: 8px; border-radius: 999px; background: rgba(255,255,255,0.08); overflow: hidden; }
+.progress-fill  { height: 100%; border-radius: 999px; }
+.progress-fill-blue   { background: linear-gradient(90deg, var(--blue-500), var(--blue-400)); box-shadow: 0 0 12px rgba(10,132,255,0.5); }
+.progress-fill-orange { background: linear-gradient(90deg, var(--orange-500), var(--orange-400)); box-shadow: 0 0 12px rgba(255,149,0,0.5); }
+.progress-fill-multi  { background: linear-gradient(90deg, var(--blue-500), var(--purple-500), var(--orange-500)); }
+
+/* XP bar */
+.xp-bar { background: rgba(255,255,255,0.06); border: 1px solid var(--glass-border); border-radius: 999px; height: 12px; overflow: hidden; position: relative; }
+.xp-fill { height: 100%; background: linear-gradient(90deg, #0A84FF, #FF9500); border-radius: 999px; position: relative; }
+.xp-fill::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent); background-size: 200% 100%; animation: shimmer 2.8s linear infinite; }
+@keyframes shimmer { from { background-position: -200% 0; } to { background-position: 200% 0; } }
+
+/* ─── CODE BLOCK ─────────────────────────────────── */
+.code-window { background: linear-gradient(180deg, rgba(2,14,24,0.9), rgba(4,22,36,0.9)); border: 1px solid var(--glass-border); border-radius: var(--r-lg); overflow: hidden; backdrop-filter: blur(20px); }
+.code-titlebar { display: flex; align-items: center; gap: 8px; padding: 12px 18px; border-bottom: 1px solid var(--glass-border); background: rgba(255,255,255,0.02); }
+.tl-dot { width: 12px; height: 12px; border-radius: 999px; }
+.tl-red    { background: #FF5F57; }
+.tl-yellow { background: #FEBC2E; }
+.tl-green  { background: #28C840; }
+.code-filename { margin-left: 8px; font-family: var(--font-mono); font-size: 12px; color: var(--ink-50); }
+.code-body { font-family: var(--font-mono); font-size: 13.5px; line-height: 1.75; padding: 20px 24px; white-space: pre; overflow-x: auto; }
+.tok-kw  { color: #FF9DB1; }
+.tok-fn  { color: #7FD5FF; }
+.tok-str { color: #FFD98E; }
+.tok-num { color: #B4F0B4; }
+.tok-cmt { color: #4D7A9A; font-style: italic; }
+.tok-var { color: #E6EEF5; }
+.tok-op  { color: #A9B8C7; }
+.code-output { padding: 10px 24px; border-top: 1px dashed rgba(255,255,255,0.07); font-family: var(--font-mono); font-size: 12px; color: var(--ink-50); }
+.out-ok   { color: #30D158; }
+.out-err  { color: #FF453A; }
+.out-xp   { color: var(--orange-400); }
+.caret    { display: inline-block; width: 7px; height: 1em; background: var(--blue-400); vertical-align: text-bottom; animation: blink 1.1s steps(2) infinite; margin-left: 2px; border-radius: 1px; }
+@keyframes blink { 50% { opacity: 0; } }
+
+/* ─── INPUT ─────────────────────────────────────── */
+.input {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: var(--r-md);
+  color: var(--ink-100);
+  font-family: var(--font-body); font-size: 14px;
+  padding: 12px 16px; width: 100%;
+  outline: none; transition: border-color 0.2s, box-shadow 0.2s;
+}
+.input::placeholder { color: var(--ink-50); }
+.input:focus { border-color: var(--blue-500); box-shadow: 0 0 0 3px rgba(10,132,255,0.2); }
+.input-label { font-size: 12px; font-weight: 500; color: var(--ink-70); margin-bottom: 6px; display: block; letter-spacing: 0.02em; }
+.input-hint  { font-size: 12px; color: var(--ink-50); margin-top: 5px; }
+.input-error { border-color: var(--red-500); }
+.input-error:focus { box-shadow: 0 0 0 3px rgba(255,69,58,0.2); }
+
+/* ─── TOAST / FEEDBACK ───────────────────────────── */
+.toast { display: flex; align-items: center; gap: 12px; padding: 14px 18px; border-radius: var(--r-md); backdrop-filter: blur(14px); border: 1px solid; font-size: 14px; min-width: 300px; }
+.toast-success { background: rgba(48,209,88,0.12); border-color: rgba(48,209,88,0.3); color: #6FE08C; }
+.toast-error   { background: rgba(255,69,58,0.12);  border-color: rgba(255,69,58,0.3);  color: #FF8075; }
+.toast-warn    { background: rgba(255,149,0,0.12);   border-color: rgba(255,149,0,0.3);   color: var(--orange-400); }
+.toast-info    { background: rgba(10,132,255,0.12);  border-color: rgba(10,132,255,0.3);  color: var(--blue-300); }
+.toast-icon    { font-size: 20px; flex-shrink: 0; }
+
+/* ─── MODAL ─────────────────────────────────────── */
+.modal-backdrop { background: rgba(2,14,24,0.75); backdrop-filter: blur(8px); border-radius: var(--r-xl); padding: 36px; border: 1px solid var(--glass-border); max-width: 440px; }
+
+/* ─── AVATAR ─────────────────────────────────────── */
+.avatar { border-radius: 999px; display: grid; place-items: center; font-weight: 600; flex-shrink: 0; }
+.avatar-sm { width: 32px; height: 32px; font-size: 13px; }
+.avatar-md { width: 44px; height: 44px; font-size: 16px; }
+.avatar-lg { width: 64px; height: 64px; font-size: 22px; }
+.avatar-blue   { background: linear-gradient(135deg, var(--blue-400), var(--blue-600)); box-shadow: 0 6px 20px rgba(10,132,255,0.4), inset 0 1px 0 rgba(255,255,255,0.3); }
+.avatar-orange { background: linear-gradient(135deg, var(--orange-400), var(--orange-600)); box-shadow: 0 6px 20px rgba(255,149,0,0.4), inset 0 1px 0 rgba(255,255,255,0.3); }
+
+/* ─── ANIMATIONS SPEC ──────────────────────────── */
+@keyframes fade-rise  { from { opacity:0; transform:translateY(28px); } to { opacity:1; transform:translateY(0); } }
+@keyframes float-y    { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-12px); } }
+@keyframes float-slow { 0%,100% { transform:translate(0,0) rotate(0deg); } 50% { transform:translate(8px,-14px) rotate(3deg); } }
+@keyframes snake-breathe { 0%,100% { transform:scale(1); } 50% { transform:scale(1.025) translateY(-3px); } }
+@keyframes snake-wave { 0%,100% { transform:rotate(-8deg); } 50% { transform:rotate(18deg); } }
+@keyframes ripple { 0% { transform:scale(0); opacity:0.5; } 100% { transform:scale(4); opacity:0; } }
+@keyframes unlock { 0% { transform:scale(0.5) rotate(-15deg); opacity:0; } 70% { transform:scale(1.15) rotate(3deg); opacity:1; } 100% { transform:scale(1) rotate(0deg); opacity:1; } }
+@keyframes confetti-fall { 0% { transform:translateY(-20px) rotate(0deg); opacity:1; } 100% { transform:translateY(80px) rotate(720deg); opacity:0; } }
+
+.demo-float { animation: float-y 5s ease-in-out infinite; }
+.demo-breathe { animation: snake-breathe 4s ease-in-out infinite; }
+
+/* Ripple on click */
+.ripple-btn { position: relative; overflow: hidden; }
+.ripple-btn::after { content:''; position:absolute; border-radius:50%; background:rgba(255,255,255,0.3); width:10px; height:10px; top:50%; left:50%; transform:scale(0); opacity:0; pointer-events:none; }
+.ripple-btn:active::after { animation: ripple 0.5s ease-out; }
+
+/* ─── MASCOT SPEC ─────────────────────────────── */
+.mascot-frame { background: radial-gradient(circle at 40% 30%, rgba(10,132,255,0.25), rgba(10,132,255,0.05) 70%); border: 1px solid var(--glass-border); border-radius: var(--r-xl); padding: 32px; display: flex; flex-direction: column; align-items: center; gap: 16px; }
+.mascot-variant-label { font-size: 12px; font-family: var(--font-mono); color: var(--ink-50); text-align: center; }
+.mascot-variant-name { font-family: var(--font-display); font-size: 20px; text-align: center; }
+.mascot-usage { font-size: 13px; color: var(--ink-70); text-align: center; line-height: 1.5; }
+
+/* ─── MISC UTILITY ────────────────────────────── */
+.label { font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-50); font-weight: 600; }
+.muted { color: var(--ink-70); }
+hr.ds { border: none; border-top: 1px solid var(--glass-border); margin: 40px 0; }
+.spacer-sm { height: 12px; } .spacer-md { height: 24px; } .spacer-lg { height: 40px; }
+
+/* Sidebar scrollbar */
+aside::-webkit-scrollbar { width: 4px; }
+aside::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 999px; }
+</style>
+</head>
+<body>
+<div id="site-nav" style="position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;gap:4px;padding:6px;background:rgba(4,22,36,0.7);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,0.12);border-radius:999px;font-family:'Inter',system-ui,sans-serif;font-size:12.5px;box-shadow:0 12px 32px -10px rgba(0,0,0,0.5)">
+<a href="index.html" data-page="index" style="padding:7px 14px;border-radius:999px;color:#B0BEC9;text-decoration:none;transition:all 0.2s">Home</a>
+<a href="landing.html" data-page="landing" style="padding:7px 14px;border-radius:999px;color:#B0BEC9;text-decoration:none;transition:all 0.2s">Landing</a>
+<a href="design-system.html" data-page="design-system" style="padding:7px 14px;border-radius:999px;color:#B0BEC9;text-decoration:none;transition:all 0.2s">Design System</a>
+<a href="velorah-hero.html" data-page="velorah-hero" style="padding:7px 14px;border-radius:999px;color:#B0BEC9;text-decoration:none;transition:all 0.2s">Velorah</a>
+</div>
+<script>(function(){var p=location.pathname.split('/').pop().replace('.html','')||'index';document.querySelectorAll('#site-nav a').forEach(function(a){if(a.dataset.page===p){a.style.background='rgba(10,132,255,0.25)';a.style.color='#fff'}a.addEventListener('mouseenter',function(){if(a.dataset.page!==p){a.style.background='rgba(255,255,255,0.08)';a.style.color='#fff'}});a.addEventListener('mouseleave',function(){if(a.dataset.page!==p){a.style.background='transparent';a.style.color='#B0BEC9'}})})})();</script>
+<div class="layout">
+
+<!-- ══════════ SIDEBAR ══════════ -->
+<aside>
+  <a href="#" class="sidebar-logo">
+    <span class="icon">π</span>
+    Pythonic<sup style="font-size:10px;color:#FF9500">®</sup>
+  </a>
+
+  <div class="nav-section">
+    <span class="nav-section-label">Foundation</span>
+    <a href="#colors" class="nav-link active">Colors</a>
+    <a href="#typography" class="nav-link">Typography</a>
+    <a href="#spacing" class="nav-link">Spacing & Radius</a>
+    <a href="#shadows" class="nav-link">Shadows & Glass</a>
+  </div>
+  <div class="nav-section">
+    <span class="nav-section-label">Components</span>
+    <a href="#buttons" class="nav-link">Buttons</a>
+    <a href="#badges" class="nav-link">Badges & Chips</a>
+    <a href="#cards" class="nav-link">Cards</a>
+    <a href="#inputs" class="nav-link">Inputs</a>
+    <a href="#progress" class="nav-link">Progress & XP</a>
+    <a href="#code" class="nav-link">Code Blocks</a>
+    <a href="#feedback" class="nav-link">Feedback & Toasts</a>
+  </div>
+  <div class="nav-section">
+    <span class="nav-section-label">Motion</span>
+    <a href="#motion" class="nav-link">Animation Tokens</a>
+    <a href="#interactions" class="nav-link">Interactions</a>
+  </div>
+  <div class="nav-section">
+    <span class="nav-section-label">Brand</span>
+    <a href="#mascot" class="nav-link">Mascot</a>
+    <a href="#voice" class="nav-link">Voice & Tone</a>
+  </div>
+</aside>
+
+<!-- ══════════ MAIN ══════════ -->
+<main>
+
+  <!-- PAGE HEADER -->
+  <div style="margin-bottom:80px">
+    <div class="chip chip-blue" style="margin-bottom:18px"><span class="dot dot-blue"></span> Design System v1.0 · April 2026</div>
+    <h1 style="font-family:var(--font-display);font-size:clamp(52px,6vw,86px);line-height:0.94;letter-spacing:-0.04em;font-weight:400;">
+      Pythonic<br><em style="color:var(--blue-400)">Design System</em>
+    </h1>
+    <p class="muted" style="margin-top:20px;font-size:17px;line-height:1.6;max-width:580px;">
+      The single source of truth for the Pythonic platform — a free, beginners-only Python learning experience. Premium motion + glassmorphism + playful warmth.
+    </p>
+    <div style="margin-top:28px;display:flex;gap:10px;flex-wrap:wrap">
+      <div class="chip chip-glass">Deep Navy Base</div>
+      <div class="chip chip-blue">Primary #0A84FF</div>
+      <div class="chip chip-orange">Accent #FF9500</div>
+      <div class="chip chip-glass">Instrument Serif + Inter</div>
+      <div class="chip chip-glass">Liquid Glass</div>
+    </div>
+  </div>
+
+  <!-- ════ COLORS ════ -->
+  <section class="ds-section" id="colors">
+    <div class="ds-section-header">
+      <span class="ds-section-tag">01 — Foundation</span>
+      <h2 class="ds-section-title">Colors</h2>
+      <p class="ds-section-desc">Deep navy serves as the cinematic canvas. Electric blue drives all primary actions. Orange creates warmth, urgency, and celebration. Never use more than two accent colors on a single surface.</p>
+    </div>
+
+    <div class="spacer-md"></div>
+    <span class="label">Primary — Blue Scale</span>
+    <div class="spacer-sm"></div>
+    <div class="scale-row">
+      <div class="scale-cell" style="background:#D0EBFF"><span class="scale-label" style="color:#063E85">100</span></div>
+      <div class="scale-cell" style="background:#7EC3FF"><span class="scale-label" style="color:#063E85">300</span></div>
+      <div class="scale-cell" style="background:#3AA0FF"><span class="scale-label" style="color:#fff">400</span></div>
+      <div class="scale-cell" style="background:#0A84FF"><span class="scale-label" style="color:#fff">500 ★</span></div>
+      <div class="scale-cell" style="background:#0060CC"><span class="scale-label" style="color:#fff">600</span></div>
+    </div>
+
+    <div class="spacer-lg"></div>
+    <span class="label">Accent — Orange Scale</span>
+    <div class="spacer-sm"></div>
+    <div class="scale-row">
+      <div class="scale-cell" style="background:#FFE4A8"><span class="scale-label" style="color:#663C00">100</span></div>
+      <div class="scale-cell" style="background:#FFB340"><span class="scale-label" style="color:#663C00">400</span></div>
+      <div class="scale-cell" style="background:#FF9500"><span class="scale-label" style="color:#fff">500 ★</span></div>
+      <div class="scale-cell" style="background:#CC6A00"><span class="scale-label" style="color:#fff">600</span></div>
+    </div>
+
+    <div class="spacer-lg"></div>
+    <span class="label">Navy — Surface Scale</span>
+    <div class="spacer-sm"></div>
+    <div class="scale-row">
+      <div class="scale-cell" style="background:#144570"><span class="scale-label" style="color:#fff">600</span></div>
+      <div class="scale-cell" style="background:#0A3050"><span class="scale-label" style="color:#fff">700</span></div>
+      <div class="scale-cell" style="background:#062133"><span class="scale-label" style="color:#fff">800 ★ bg</span></div>
+      <div class="scale-cell" style="background:#041624"><span class="scale-label" style="color:#fff">900</span></div>
+      <div class="scale-cell" style="background:#020E18"><span class="scale-label" style="color:#fff">950</span></div>
+    </div>
+
+    <div class="spacer-lg"></div>
+    <span class="label">Status Colors</span>
+    <div class="spacer-sm"></div>
+    <div class="grid-4">
+      <div class="token-card">
+        <div class="token-swatch" style="background:#30D158"></div>
+        <div class="token-name">Success</div>
+        <div class="token-value">#30D158</div>
+        <div class="token-desc">Code runs, achievement unlocked, lesson complete</div>
+      </div>
+      <div class="token-card">
+        <div class="token-swatch" style="background:#FF453A"></div>
+        <div class="token-name">Error</div>
+        <div class="token-value">#FF453A</div>
+        <div class="token-desc">Bug found — delivered with humor, never shame</div>
+      </div>
+      <div class="token-card">
+        <div class="token-swatch" style="background:#FF9500"></div>
+        <div class="token-name">Warning</div>
+        <div class="token-value">#FF9500</div>
+        <div class="token-desc">Hint, suggestion, streak at risk</div>
+      </div>
+      <div class="token-card">
+        <div class="token-swatch" style="background:#BF5AF2"></div>
+        <div class="token-name">Special</div>
+        <div class="token-value">#BF5AF2</div>
+        <div class="token-desc">Boss level, bonus challenge, rare achievement</div>
+      </div>
+    </div>
+
+    <div class="spacer-lg"></div>
+    <span class="label">Ink (Text) Scale</span>
+    <div class="spacer-sm"></div>
+    <div class="scale-row">
+      <div class="scale-cell" style="background:#FFFFFF"><span class="scale-label" style="color:#0A3050">100 — Headings</span></div>
+      <div class="scale-cell" style="background:#EAF0F8"><span class="scale-label" style="color:#0A3050">90 — Body</span></div>
+      <div class="scale-cell" style="background:#B0BEC9"><span class="scale-label" style="color:#0A3050">70 — Secondary</span></div>
+      <div class="scale-cell" style="background:#768797"><span class="scale-label" style="color:#fff">50 — Muted</span></div>
+      <div class="scale-cell" style="background:#455060"><span class="scale-label" style="color:#fff">30 — Disabled</span></div>
+    </div>
+
+    <div class="spacer-lg"></div>
+    <span class="label">Glass Surfaces</span>
+    <div class="spacer-sm"></div>
+    <div class="grid-3">
+      <div class="token-card" style="background:rgba(255,255,255,0.10)">
+        <div class="token-name">glass-10</div>
+        <div class="token-value">rgba(255,255,255,0.10)</div>
+        <div class="token-desc">Active nav item, focused input</div>
+      </div>
+      <div class="token-card" style="background:rgba(255,255,255,0.06)">
+        <div class="token-name">glass-06</div>
+        <div class="token-value">rgba(255,255,255,0.06)</div>
+        <div class="token-desc">Cards, sidebars, dropdowns</div>
+      </div>
+      <div class="token-card" style="background:rgba(255,255,255,0.03)">
+        <div class="token-name">glass-03</div>
+        <div class="token-value">rgba(255,255,255,0.03)</div>
+        <div class="token-desc">Card gradient bottom, overlays</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════ TYPOGRAPHY ════ -->
+  <section class="ds-section" id="typography">
+    <div class="ds-section-header">
+      <span class="ds-section-tag">02 — Foundation</span>
+      <h2 class="ds-section-title">Typography</h2>
+      <p class="ds-section-desc">Instrument Serif for emotional display text — big, cinematic, slightly editorial. Inter for everything functional. JetBrains Mono in code contexts. Never mix serif and mono on the same line.</p>
+    </div>
+
+    <div class="col">
+      <div class="type-specimen">
+        <div class="type-meta">display-xxl<br>Instrument Serif<br>9.5vw / 400<br>ls: -0.035em<br>lh: 0.92</div>
+        <div style="font-family:var(--font-display);font-size:clamp(52px,7vw,96px);line-height:0.92;letter-spacing:-0.035em;font-weight:400">Where <em style="color:var(--blue-400)">Python</em> clicks.</div>
+      </div>
+      <div class="type-specimen">
+        <div class="type-meta">display-xl<br>Instrument Serif<br>6.4vw / 400<br>ls: -0.03em<br>lh: 0.95</div>
+        <div style="font-family:var(--font-display);font-size:clamp(40px,5.5vw,72px);line-height:0.95;letter-spacing:-0.03em;font-weight:400">Learning that feels like <em style="color:var(--orange-400)">winning.</em></div>
+      </div>
+      <div class="type-specimen">
+        <div class="type-meta">display-lg<br>Instrument Serif<br>4vw / 400<br>ls: -0.02em<br>lh: 1.02</div>
+        <div style="font-family:var(--font-display);font-size:clamp(32px,4vw,52px);line-height:1.02;letter-spacing:-0.02em;font-weight:400">Your first "it works!" moment.</div>
+      </div>
+      <div class="type-specimen">
+        <div class="type-meta">heading-xl<br>Inter 600<br>28px<br>ls: -0.02em<br>lh: 1.2</div>
+        <div style="font-size:28px;font-weight:600;letter-spacing:-0.02em;line-height:1.2">Lesson 3 — Decisions & Logic</div>
+      </div>
+      <div class="type-specimen">
+        <div class="type-meta">heading-lg<br>Inter 600<br>22px<br>ls: -0.015em</div>
+        <div style="font-size:22px;font-weight:600;letter-spacing:-0.015em">Your Learning Path</div>
+      </div>
+      <div class="type-specimen">
+        <div class="type-meta">body-lg<br>Inter 400<br>17px<br>lh: 1.65</div>
+        <div style="font-size:17px;line-height:1.65;color:var(--ink-70)">We're building a space where making mistakes is part of the fun. Where every error message is a clue, not a judgment call.</div>
+      </div>
+      <div class="type-specimen">
+        <div class="type-meta">body-sm<br>Inter 400<br>14px<br>lh: 1.6</div>
+        <div style="font-size:14px;line-height:1.6;color:var(--ink-70)">Complete this lesson to unlock Chapter 2 · 8 min read · +25 XP</div>
+      </div>
+      <div class="type-specimen">
+        <div class="type-meta">eyebrow<br>Inter 600<br>10px<br>ls: 0.18em<br>uppercase</div>
+        <div style="font-size:10px;font-weight:600;letter-spacing:0.18em;text-transform:uppercase;color:var(--ink-50)">Chapter 01 — The Basics</div>
+      </div>
+      <div class="type-specimen">
+        <div class="type-meta">mono<br>JetBrains Mono<br>14px<br>lh: 1.75</div>
+        <div style="font-family:var(--font-mono);font-size:14px;line-height:1.75"><span class="tok-kw">for</span> <span class="tok-var">i</span> <span class="tok-kw">in</span> <span class="tok-fn">range</span><span class="tok-op">(</span><span class="tok-num">5</span><span class="tok-op">):</span><br>&nbsp;&nbsp;&nbsp;&nbsp;<span class="tok-fn">print</span><span class="tok-op">(</span><span class="tok-str">f"Hello #{"{i}"}"</span><span class="tok-op">)</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════ SPACING + RADIUS ════ -->
+  <section class="ds-section" id="spacing">
+    <div class="ds-section-header">
+      <span class="ds-section-tag">03 — Foundation</span>
+      <h2 class="ds-section-title">Spacing & Radius</h2>
+      <p class="ds-section-desc">An 8-point base grid. Border radii feel soft and approachable — we're learning, not enterprise banking.</p>
+    </div>
+    <div class="grid-2">
+      <div>
+        <span class="label">Spacing Scale (8pt grid)</span>
+        <div class="spacer-md"></div>
+        <div class="col" style="gap:10px">
+          <div style="display:flex;align-items:center;gap:12px">
+            <div style="background:var(--blue-500);height:14px;border-radius:2px;opacity:0.8;width:4.8px;min-width:4px;max-width:200px;flex-shrink:0"></div>
+            <span style="font-family:var(--font-mono);font-size:12px;color:var(--ink-70);white-space:nowrap">4px — Micro gap</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px">
+            <div style="background:var(--blue-500);height:14px;border-radius:2px;opacity:0.8;width:9.6px;min-width:4px;max-width:200px;flex-shrink:0"></div>
+            <span style="font-family:var(--font-mono);font-size:12px;color:var(--ink-70);white-space:nowrap">8px — Icon gap, tag padding</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px">
+            <div style="background:var(--blue-500);height:14px;border-radius:2px;opacity:0.8;width:14.399999999999999px;min-width:4px;max-width:200px;flex-shrink:0"></div>
+            <span style="font-family:var(--font-mono);font-size:12px;color:var(--ink-70);white-space:nowrap">12px — Compact</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px">
+            <div style="background:var(--blue-500);height:14px;border-radius:2px;opacity:0.8;width:19.2px;min-width:4px;max-width:200px;flex-shrink:0"></div>
+            <span style="font-family:var(--font-mono);font-size:12px;color:var(--ink-70);white-space:nowrap">16px — Standard gap</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px">
+            <div style="background:var(--blue-500);height:14px;border-radius:2px;opacity:0.8;width:28.799999999999997px;min-width:4px;max-width:200px;flex-shrink:0"></div>
+            <span style="font-family:var(--font-mono);font-size:12px;color:var(--ink-70);white-space:nowrap">24px — Card padding</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px">
+            <div style="background:var(--blue-500);height:14px;border-radius:2px;opacity:0.8;width:38.4px;min-width:4px;max-width:200px;flex-shrink:0"></div>
+            <span style="font-family:var(--font-mono);font-size:12px;color:var(--ink-70);white-space:nowrap">32px — Section gap</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px">
+            <div style="background:var(--blue-500);height:14px;border-radius:2px;opacity:0.8;width:57.599999999999994px;min-width:4px;max-width:200px;flex-shrink:0"></div>
+            <span style="font-family:var(--font-mono);font-size:12px;color:var(--ink-70);white-space:nowrap">48px — Block spacing</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px">
+            <div style="background:var(--blue-500);height:14px;border-radius:2px;opacity:0.8;width:76.8px;min-width:4px;max-width:200px;flex-shrink:0"></div>
+            <span style="font-family:var(--font-mono);font-size:12px;color:var(--ink-70);white-space:nowrap">64px — Section padding</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px">
+            <div style="background:var(--blue-500);height:14px;border-radius:2px;opacity:0.8;width:115.19999999999999px;min-width:4px;max-width:200px;flex-shrink:0"></div>
+            <span style="font-family:var(--font-mono);font-size:12px;color:var(--ink-70);white-space:nowrap">96px — Hero spacing</span>
+          </div>
+        </div>
+      </div>
+      <div>
+        <span class="label">Border Radius Scale</span>
+        <div class="spacer-md"></div>
+        <div class="col" style="gap:14px">
+          <div style="display:flex;align-items:center;gap:16px">
+            <div style="width:64px;height:40px;background:var(--glass-06);border:1px solid var(--glass-border);border-radius:8px;flex-shrink:0"></div>
+            <div>
+              <div style="font-family:var(--font-mono);font-size:12px;color:var(--ink-90)">--r-sm: 8px</div>
+              <div style="font-size:12px;color:var(--ink-50)">Tags, chips, small elements</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:16px">
+            <div style="width:64px;height:40px;background:var(--glass-06);border:1px solid var(--glass-border);border-radius:14px;flex-shrink:0"></div>
+            <div>
+              <div style="font-family:var(--font-mono);font-size:12px;color:var(--ink-90)">--r-md: 14px</div>
+              <div style="font-size:12px;color:var(--ink-50)">Inputs, dropdowns, code tokens</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:16px">
+            <div style="width:64px;height:40px;background:var(--glass-06);border:1px solid var(--glass-border);border-radius:20px;flex-shrink:0"></div>
+            <div>
+              <div style="font-family:var(--font-mono);font-size:12px;color:var(--ink-90)">--r-lg: 20px</div>
+              <div style="font-size:12px;color:var(--ink-50)">Cards, code windows, dialogs</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:16px">
+            <div style="width:64px;height:40px;background:var(--glass-06);border:1px solid var(--glass-border);border-radius:28px;flex-shrink:0"></div>
+            <div>
+              <div style="font-family:var(--font-mono);font-size:12px;color:var(--ink-90)">--r-xl: 28px</div>
+              <div style="font-size:12px;color:var(--ink-50)">Hero cards, modals</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:16px">
+            <div style="width:64px;height:40px;background:var(--glass-06);border:1px solid var(--glass-border);border-radius:999px;flex-shrink:0"></div>
+            <div>
+              <div style="font-family:var(--font-mono);font-size:12px;color:var(--ink-90)">--r-pill: 999px</div>
+              <div style="font-size:12px;color:var(--ink-50)">Buttons, badges, pills</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════ SHADOWS + GLASS ════ -->
+  <section class="ds-section" id="shadows">
+    <div class="ds-section-header">
+      <span class="ds-section-tag">04 — Foundation</span>
+      <h2 class="ds-section-title">Shadows & Liquid Glass</h2>
+      <p class="ds-section-desc">Glass surfaces layer backdrop-filter blur, a gradient border mask, and a subtle inset highlight. They always sit on dark backgrounds to activate the luminosity effect.</p>
+    </div>
+    <div class="grid-3">
+      <div class="card card-flat" style="padding:28px">
+        <span class="label">Flat Card</span>
+        <div style="margin-top:14px;color:var(--ink-70);font-size:13px;line-height:1.6">glass-06 bg + glass border. No elevation. Use for contained data.</div>
+      </div>
+      <div class="card card-raised" style="padding:28px">
+        <span class="label">Raised Card</span>
+        <div style="margin-top:14px;color:var(--ink-70);font-size:13px;line-height:1.6">Gradient fill + shadow-md. Hover lifts 4px. Use for interactive surfaces.</div>
+      </div>
+      <div class="card card-raised liquid-glass" style="padding:28px;border-radius:20px">
+        <span class="label">Liquid Glass Card</span>
+        <div style="margin-top:14px;color:var(--ink-70);font-size:13px;line-height:1.6">backdrop-filter blur(14px) + gradient border mask + inset highlight. Premium surfaces only.</div>
+      </div>
+      <div class="card card-glow-blue" style="padding:28px">
+        <span class="label">Blue Glow Card</span>
+        <div style="margin-top:14px;color:var(--ink-70);font-size:13px;line-height:1.6">Primary action surfaces. CTAs, lesson start, interactive exercises.</div>
+      </div>
+      <div class="card card-glow-orange" style="padding:28px">
+        <span class="label">Orange Glow Card</span>
+        <div style="margin-top:14px;color:var(--ink-70);font-size:13px;line-height:1.6">Achievements, streaks, celebrations. Warmth & delight.</div>
+      </div>
+      <div class="card card-raised" style="padding:28px;box-shadow:0 0 0 1px rgba(191,90,242,0.4),0 28px 60px -20px rgba(191,90,242,0.5)">
+        <span class="label">Purple Glow Card</span>
+        <div style="margin-top:14px;color:var(--ink-70);font-size:13px;line-height:1.6">Boss levels, rare items, special achievements. Use sparingly.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════ BUTTONS ════ -->
+  <section class="ds-section" id="buttons">
+    <div class="ds-section-header">
+      <span class="ds-section-tag">05 — Components</span>
+      <h2 class="ds-section-title">Buttons</h2>
+      <p class="ds-section-desc">All buttons have hover lift + scale(1.03). Primary buttons carry a shine sweep on hover. Ripple on click for tactile feedback. Never use flat buttons in dark contexts.</p>
+    </div>
+
+    <span class="label">Variants</span>
+    <div class="spacer-md"></div>
+    <div class="flex-wrap" style="gap:14px">
+      <button class="btn btn-primary btn-lg ripple-btn">
+        <span class="btn-shine"></span>
+        Start learning free
+      </button>
+      <button class="btn btn-orange btn-lg ripple-btn">
+        <span class="btn-shine"></span>
+        🏆 Unlock achievement
+      </button>
+      <button class="btn btn-ghost btn-lg">Browse lessons</button>
+      <button class="btn btn-glass liquid-glass btn-lg" style="border-radius:999px">
+        ▶ Watch preview
+      </button>
+    </div>
+
+    <div class="spacer-lg"></div>
+    <span class="label">Sizes</span>
+    <div class="spacer-md"></div>
+    <div class="flex-wrap" style="align-items:center">
+      <button class="btn btn-primary btn-sm ripple-btn"><span class="btn-shine"></span>Small</button>
+      <button class="btn btn-primary btn-md ripple-btn"><span class="btn-shine"></span>Medium</button>
+      <button class="btn btn-primary btn-lg ripple-btn"><span class="btn-shine"></span>Large</button>
+      <button class="btn btn-primary btn-xl ripple-btn"><span class="btn-shine"></span>XL — Hero CTA</button>
+    </div>
+
+    <div class="spacer-lg"></div>
+    <span class="label">Icon Buttons</span>
+    <div class="spacer-md"></div>
+    <div class="flex-wrap">
+      <button class="btn btn-primary btn-md ripple-btn"><span class="btn-shine"></span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M8 5v14l11-7z" fill="white"/></svg>
+        Run code
+      </button>
+      <button class="btn btn-orange btn-md ripple-btn"><span class="btn-shine"></span>
+        🎯 Next lesson
+      </button>
+      <button class="btn btn-ghost btn-md">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M19 12H5M12 5l-7 7 7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        Back
+      </button>
+    </div>
+
+    <div class="spacer-lg"></div>
+    <div class="glass-card" style="padding:24px">
+      <span class="label">Interaction Spec</span>
+      <div style="margin-top:16px;display:grid;grid-template-columns:1fr 1fr;gap:20px;font-size:13px;color:var(--ink-70);line-height:1.7">
+        <div><strong style="color:var(--ink-100)">Hover</strong><br>translateY(-2px) + scale(1.03) + shadow increase + shine sweep (primary only)</div>
+        <div><strong style="color:var(--ink-100)">Active / Click</strong><br>scale(0.97) + ripple wave emanating from click point</div>
+        <div><strong style="color:var(--ink-100)">Focus</strong><br>0 0 0 3px rgba(10,132,255,0.35) ring, never remove outline</div>
+        <div><strong style="color:var(--ink-100)">Disabled</strong><br>opacity 0.38, no hover effects, cursor: not-allowed</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════ BADGES ════ -->
+  <section class="ds-section" id="badges">
+    <div class="ds-section-header">
+      <span class="ds-section-tag">06 — Components</span>
+      <h2 class="ds-section-title">Badges & Chips</h2>
+      <p class="ds-section-desc">Small status signals. The animated dot indicates live state. Use chips for contextual labels; reserve colored chips for semantic meaning (blue = info, orange = streak, green = success, red = error).</p>
+    </div>
+    <div class="flex-wrap" style="gap:10px">
+      <div class="chip chip-blue"><span class="dot dot-blue"></span> Live now</div>
+      <div class="chip chip-orange"><span class="dot dot-orange"></span> Streak active</div>
+      <div class="chip chip-green"><span class="dot dot-green"></span> Lesson complete</div>
+      <div class="chip chip-red">Bug detected 🐛</div>
+      <div class="chip chip-glass">Free forever</div>
+      <div class="chip chip-glass">+25 XP</div>
+      <div class="chip chip-glass" style="background:rgba(191,90,242,0.14);color:#D48EF5;border-color:rgba(191,90,242,0.3)">⚡ Boss Level</div>
+      <div class="chip chip-blue">New Season 2026</div>
+    </div>
+
+    <div class="spacer-lg"></div>
+    <span class="label">Achievement Badges</span>
+    <div class="spacer-md"></div>
+    <div class="flex-wrap" style="gap:16px">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:10px;animation:unlock 0.4s ease-out both">
+        <div style="width:72px;height:72px;border-radius:22px;background:linear-gradient(135deg,#FF950044,#FF950018);border:1.5px solid #FF950066;display:grid;place-items:center;font-size:32px;box-shadow:0 12px 32px -12px #FF950077,inset 0 1px 0 rgba(255,255,255,0.25)">
+          🏆
+        </div>
+        <span style="font-size:11px;font-weight:600;color:var(--ink-70);text-align:center">First Print</span>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:10px;animation:unlock 0.4s ease-out both">
+        <div style="width:72px;height:72px;border-radius:22px;background:linear-gradient(135deg,#FF453A44,#FF453A18);border:1.5px solid #FF453A66;display:grid;place-items:center;font-size:32px;box-shadow:0 12px 32px -12px #FF453A77,inset 0 1px 0 rgba(255,255,255,0.25)">
+          🔥
+        </div>
+        <span style="font-size:11px;font-weight:600;color:var(--ink-70);text-align:center">7-Day Streak</span>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:10px;animation:unlock 0.4s ease-out both">
+        <div style="width:72px;height:72px;border-radius:22px;background:linear-gradient(135deg,#BF5AF244,#BF5AF218);border:1.5px solid #BF5AF266;display:grid;place-items:center;font-size:32px;box-shadow:0 12px 32px -12px #BF5AF277,inset 0 1px 0 rgba(255,255,255,0.25)">
+          ⚡
+        </div>
+        <span style="font-size:11px;font-weight:600;color:var(--ink-70);text-align:center">Speed Run</span>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:10px;animation:unlock 0.4s ease-out both">
+        <div style="width:72px;height:72px;border-radius:22px;background:linear-gradient(135deg,#0A84FF44,#0A84FF18);border:1.5px solid #0A84FF66;display:grid;place-items:center;font-size:32px;box-shadow:0 12px 32px -12px #0A84FF77,inset 0 1px 0 rgba(255,255,255,0.25)">
+          🐍
+        </div>
+        <span style="font-size:11px;font-weight:600;color:var(--ink-70);text-align:center">Snake Master</span>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:10px;animation:unlock 0.4s ease-out both">
+        <div style="width:72px;height:72px;border-radius:22px;background:linear-gradient(135deg,#30D15844,#30D15818);border:1.5px solid #30D15866;display:grid;place-items:center;font-size:32px;box-shadow:0 12px 32px -12px #30D15877,inset 0 1px 0 rgba(255,255,255,0.25)">
+          🎯
+        </div>
+        <span style="font-size:11px;font-weight:600;color:var(--ink-70);text-align:center">100% Score</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════ CARDS ════ -->
+  <section class="ds-section" id="cards">
+    <div class="ds-section-header">
+      <span class="ds-section-tag">07 — Components</span>
+      <h2 class="ds-section-title">Cards</h2>
+      <p class="ds-section-desc">Cards are the primary content container. All interactive cards lift on hover. Glow cards signal importance. Never stack two glow cards next to each other.</p>
+    </div>
+    <div class="grid-3" style="gap:20px">
+      <!-- Lesson card -->
+      <div class="card card-raised" style="cursor:pointer">
+        <div style="background:linear-gradient(135deg,rgba(10,132,255,0.35),rgba(10,132,255,0.08));height:100px;border-radius:var(--r-md) var(--r-md) 0 0;display:grid;place-items:center;font-size:40px;border-bottom:1px solid var(--glass-border)">🐣</div>
+        <div style="padding:20px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+            <div class="chip chip-blue" style="font-size:11px;padding:4px 10px">Lesson 1</div>
+            <span style="font-size:12px;color:var(--ink-50)">6 min</span>
+          </div>
+          <div style="font-family:var(--font-display);font-size:22px;letter-spacing:-0.01em;line-height:1.1">Make it say hi</div>
+          <div style="font-size:13px;color:var(--ink-70);margin-top:8px;line-height:1.5">Your very first program. One line. Total magic.</div>
+          <div style="margin-top:16px">
+            <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--ink-50);margin-bottom:6px">
+              <span>Progress</span><span>3/5 steps</span>
+            </div>
+            <div class="progress-track"><div class="progress-fill progress-fill-blue" style="width:60%"></div></div>
+          </div>
+        </div>
+      </div>
+      <!-- Achievement card -->
+      <div class="card card-glow-orange" style="padding:24px;cursor:pointer">
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px">
+          <div style="width:60px;height:60px;border-radius:18px;background:linear-gradient(135deg,#FF9500,#CC6A00);display:grid;place-items:center;font-size:28px;box-shadow:0 12px 30px rgba(255,149,0,0.5),inset 0 1px 0 rgba(255,255,255,0.4)">🏆</div>
+          <div>
+            <div style="font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:var(--orange-400)">Achievement Unlocked</div>
+            <div style="font-family:var(--font-display);font-size:24px;line-height:1.1;margin-top:2px">First Print!</div>
+          </div>
+        </div>
+        <p style="font-size:13px;color:var(--ink-70);line-height:1.55">You told a computer what to say for the first time. Honestly? You're kind of a wizard now. ✨</p>
+        <div style="margin-top:18px;height:6px;border-radius:999px;overflow:hidden;background:rgba(255,255,255,0.08)">
+          <div style="width:100%;height:100%;background:linear-gradient(90deg,#FF9500,#FFB340);box-shadow:0 0 12px rgba(255,149,0,0.5)"></div>
+        </div>
+      </div>
+      <!-- Stat card -->
+      <div class="card card-raised" style="padding:28px;text-align:center">
+        <div style="font-family:var(--font-display);font-size:72px;line-height:1;background:linear-gradient(135deg,var(--blue-400),var(--orange-500));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:-0.04em">97%</div>
+        <div style="margin-top:12px;font-size:14px;color:var(--ink-70);line-height:1.5">of students finish<br>their very first lesson</div>
+        <div style="margin-top:18px" class="chip chip-glass" style="margin:18px auto 0">vs 34% industry avg</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════ INPUTS ════ -->
+  <section class="ds-section" id="inputs">
+    <div class="ds-section-header">
+      <span class="ds-section-tag">08 — Components</span>
+      <h2 class="ds-section-title">Inputs</h2>
+      <p class="ds-section-desc">Friendly, low-friction. Blue focus ring. Error state is warm (orange first, red on persistent error) — we never yell. Placeholder text is encouraging, never generic.</p>
+    </div>
+    <div class="grid-2" style="gap:32px">
+      <div>
+        <label class="input-label">Your name</label>
+        <input class="input" type="text" placeholder="e.g. Ada, Guido, or just 'curious human'">
+        <div class="input-hint">We'll use this to celebrate your wins 🎉</div>
+      </div>
+      <div>
+        <label class="input-label">Email</label>
+        <input class="input" type="email" placeholder="your@email.com">
+        <div class="input-hint">Only used for streak reminders. No spam. Ever.</div>
+      </div>
+      <div>
+        <label class="input-label" style="color:#FF8075">Code answer <span style="font-size:11px">(error state)</span></label>
+        <input class="input input-error" type="text" value="pritn('hello')" >
+        <div class="input-hint" style="color:#FF8075">Hmm, looks like a typo in there — variables don't bite, but typos do 🐛</div>
+      </div>
+      <div>
+        <label class="input-label" style="color:#6FE08C">Code answer <span style="font-size:11px">(success state)</span></label>
+        <input class="input" type="text" value="print('Hello, world!')" style="border-color:#30D158;box-shadow:0 0 0 3px rgba(48,209,88,0.2)">
+        <div class="input-hint" style="color:#6FE08C">Perfect! +10 XP added to your account ✓</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════ PROGRESS ════ -->
+  <section class="ds-section" id="progress">
+    <div class="ds-section-header">
+      <span class="ds-section-tag">09 — Components</span>
+      <h2 class="ds-section-title">Progress & XP</h2>
+      <p class="ds-section-desc">Progress is the emotional engine of the platform. Every fill should feel satisfying. Shimmer on active progress. Glow on complete. The XP bar is always visible in lesson view.</p>
+    </div>
+    <div class="col" style="gap:28px;max-width:600px">
+      <div>
+        <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--ink-70);margin-bottom:8px">
+          <span>Chapter 1 — The Basics</span><span style="color:var(--blue-400)">4 / 6 lessons</span>
+        </div>
+        <div class="progress-track"><div class="progress-fill progress-fill-blue" style="width:67%"></div></div>
+      </div>
+      <div>
+        <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--ink-70);margin-bottom:8px">
+          <span>🔥 Daily Streak</span><span style="color:var(--orange-400)">7 days</span>
+        </div>
+        <div class="progress-track"><div class="progress-fill progress-fill-orange" style="width:100%"></div></div>
+      </div>
+      <div>
+        <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--ink-70);margin-bottom:8px">
+          <span>Overall mastery</span><span>3 chapters complete</span>
+        </div>
+        <div class="progress-track"><div class="progress-fill progress-fill-multi" style="width:42%"></div></div>
+      </div>
+      <div>
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px">
+          <span style="font-family:var(--font-display);font-size:22px">XP <em style="color:var(--orange-400)">840</em> / 1000</span>
+          <span style="font-size:12px;color:var(--ink-50)">Level 4 · 160 XP to next</span>
+        </div>
+        <div class="xp-bar"><div class="xp-fill" style="width:84%"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════ CODE BLOCKS ════ -->
+  <section class="ds-section" id="code">
+    <div class="ds-section-header">
+      <span class="ds-section-tag">10 — Components</span>
+      <h2 class="ds-section-title">Code Blocks</h2>
+      <p class="ds-section-desc">All code lives in a glass window with macOS-style traffic lights. Syntax uses a warm, readable palette — never harsh neon. Output lines beneath carry the XP / error / success feedback.</p>
+    </div>
+    <div class="code-window">
+      <div class="code-titlebar">
+        <span class="tl-dot tl-red"></span><span class="tl-dot tl-yellow"></span><span class="tl-dot tl-green"></span>
+        <span class="code-filename">lesson_03_decisions.py</span>
+        <span style="margin-left:auto;font-size:11px;color:var(--ink-50);font-family:var(--font-mono)">Python 3.12</span>
+      </div>
+      <div class="code-body"><span class="tok-cmt"># 🐍 Is it nap time? Let's check.</span>
+<span class="tok-var">hour</span> <span class="tok-op">=</span> <span class="tok-num">14</span>   <span class="tok-cmt"># It's 2pm</span>
+
+<span class="tok-kw">if</span> <span class="tok-var">hour</span> <span class="tok-op">&lt;</span> <span class="tok-num">12</span><span class="tok-op">:</span>
+    <span class="tok-fn">print</span><span class="tok-op">(</span><span class="tok-str">"Good morning! ☀️"</span><span class="tok-op">)</span>
+<span class="tok-kw">elif</span> <span class="tok-var">hour</span> <span class="tok-op">&lt;</span> <span class="tok-num">18</span><span class="tok-op">:</span>
+    <span class="tok-fn">print</span><span class="tok-op">(</span><span class="tok-str">"Afternoon, coder. 🐍"</span><span class="tok-op">)</span>
+<span class="tok-kw">else</span><span class="tok-op">:</span>
+    <span class="tok-fn">print</span><span class="tok-op">(</span><span class="tok-str">"Late night? Legend. 🌙"</span><span class="tok-op">)</span><span class="caret"></span></div>
+      <div class="code-output"><span class="out-ok">→ Afternoon, coder. 🐍</span></div>
+      <div class="code-output"><span class="out-xp">✓ Correct! +25 XP — nailed the if/elif/else trifecta!</span></div>
+    </div>
+    <div class="spacer-lg"></div>
+    <span class="label">Error State</span>
+    <div class="spacer-md"></div>
+    <div class="code-window">
+      <div class="code-titlebar">
+        <span class="tl-dot tl-red"></span><span class="tl-dot tl-yellow"></span><span class="tl-dot tl-green"></span>
+        <span class="code-filename">your_attempt.py</span>
+      </div>
+      <div class="code-body"><span class="tok-fn">pritn</span><span class="tok-op">(</span><span class="tok-str">"Hello!"</span><span class="tok-op">)</span>  <span class="tok-cmt"># oops</span><span class="caret"></span></div>
+      <div class="code-output"><span class="out-err">✗ NameError: name 'pritn' is not defined</span></div>
+      <div class="code-output" style="color:var(--orange-400)">💡 Psst — looks like a typo! Python is very picky about spelling. Try 'print' instead 😄</div>
+    </div>
+  </section>
+
+  <!-- ════ FEEDBACK / TOASTS ════ -->
+  <section class="ds-section" id="feedback">
+    <div class="ds-section-header">
+      <span class="ds-section-tag">11 — Components</span>
+      <h2 class="ds-section-title">Feedback & Toasts</h2>
+      <p class="ds-section-desc">All feedback is warm, conversational, and at least mildly amusing. We never say "Invalid input." We say "Hmm, that doesn't quite compute — yet." Error messages are our secret weapon against dropout.</p>
+    </div>
+    <div class="col" style="gap:12px;max-width:480px">
+      <div class="toast toast-success">
+        <span class="toast-icon">🎉</span>
+        <div><strong>Achievement unlocked!</strong> You finished Lesson 1 — First Print. +10 XP!</div>
+      </div>
+      <div class="toast toast-error">
+        <span class="toast-icon">🐛</span>
+        <div><strong>Bug spotted!</strong> Your variable ran off somewhere. Check line 3 and call it back.</div>
+      </div>
+      <div class="toast toast-warn">
+        <span class="toast-icon">🔥</span>
+        <div><strong>Streak at risk!</strong> Come back today to keep your 7-day streak alive.</div>
+      </div>
+      <div class="toast toast-info">
+        <span class="toast-icon">💡</span>
+        <div><strong>Hint unlocked.</strong> You can use a for loop here — it's basically a robot doing the boring stuff for you.</div>
+      </div>
+    </div>
+    <div class="spacer-lg"></div>
+    <span class="label">Voice examples — Error messages</span>
+    <div class="spacer-md"></div>
+    <div class="glass-card" style="padding:24px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;font-size:13px;line-height:1.6">
+        <div>
+          <div style="color:var(--red-500);font-weight:600;margin-bottom:6px">❌ Never say</div>
+          <div style="color:var(--ink-50)">"SyntaxError: invalid syntax"</div>
+          <div style="color:var(--ink-50);margin-top:6px">"Undefined variable"</div>
+          <div style="color:var(--ink-50);margin-top:6px">"Your code is wrong."</div>
+        </div>
+        <div>
+          <div style="color:var(--green-500);font-weight:600;margin-bottom:6px">✓ Say instead</div>
+          <div style="color:var(--ink-70)">"Oops! Looks like something's off on line 3 — missing a colon? 🔍"</div>
+          <div style="color:var(--ink-70);margin-top:6px">"Python can't find that variable — maybe it got lost? Try declaring it first 😄"</div>
+          <div style="color:var(--ink-70);margin-top:6px">"Almost! Small thing: Python is very literal. Double-check your spelling."</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════ MOTION ════ -->
+  <section class="ds-section" id="motion">
+    <div class="ds-section-header">
+      <span class="ds-section-tag">12 — Motion</span>
+      <h2 class="ds-section-title">Animation Tokens</h2>
+      <p class="ds-section-desc">All motion uses cubic-bezier(.2,.8,.2,1) — fast out, slow settle. Never linear for UI. Reserve spring physics for achievement unlocks and celebrations.</p>
+    </div>
+    <div class="grid-2" style="gap:24px">
+      <div class="glass-card" style="padding:24px">
+        <span class="label">Easing Curves</span>
+        <div style="margin-top:16px;display:flex;flex-direction:column;gap:14px;font-size:13px">
+          <div>
+            <div style="display:flex;justify-content:space-between;align-items:baseline">
+              <strong style="color:var(--ink-90)">ease-out</strong>
+              <span style="font-family:var(--font-mono);font-size:11px;color:var(--ink-50)">cubic-bezier(.2,.8,.2,1)</span>
+            </div>
+            <div style="color:var(--ink-70);font-size:12px;margin-top:2px">All UI transitions — lift, scale, reveal</div>
+          </div>
+          <div>
+            <div style="display:flex;justify-content:space-between;align-items:baseline">
+              <strong style="color:var(--ink-90)">ease-spring</strong>
+              <span style="font-family:var(--font-mono);font-size:11px;color:var(--ink-50)">cubic-bezier(.34,1.56,.64,1)</span>
+            </div>
+            <div style="color:var(--ink-70);font-size:12px;margin-top:2px">Achievement unlock, badge pop, confetti</div>
+          </div>
+          <div>
+            <div style="display:flex;justify-content:space-between;align-items:baseline">
+              <strong style="color:var(--ink-90)">ease-in</strong>
+              <span style="font-family:var(--font-mono);font-size:11px;color:var(--ink-50)">cubic-bezier(.4,0,.8,.6)</span>
+            </div>
+            <div style="color:var(--ink-70);font-size:12px;margin-top:2px">Exit animations (elements leaving)</div>
+          </div>
+          <div>
+            <div style="display:flex;justify-content:space-between;align-items:baseline">
+              <strong style="color:var(--ink-90)">linear</strong>
+              <span style="font-family:var(--font-mono);font-size:11px;color:var(--ink-50)">linear</span>
+            </div>
+            <div style="color:var(--ink-70);font-size:12px;margin-top:2px">Shimmer, rotate, marquee — time-uniform</div>
+          </div>
+        </div>
+      </div>
+      <div class="glass-card" style="padding:24px">
+        <span class="label">Duration Scale</span>
+        <div style="margin-top:16px;display:flex;flex-direction:column;gap:14px;font-size:13px">
+          <div style="display:flex;gap:16px;align-items:baseline">
+            <span style="font-family:var(--font-mono);font-size:12px;color:var(--blue-400);min-width:52px">80ms</span>
+            <span style="color:var(--ink-70)">Micro-interactions (button scale, ring)</span>
+          </div>
+          <div style="display:flex;gap:16px;align-items:baseline">
+            <span style="font-family:var(--font-mono);font-size:12px;color:var(--blue-400);min-width:52px">200ms</span>
+            <span style="color:var(--ink-70)">State changes (active, focus, color)</span>
+          </div>
+          <div style="display:flex;gap:16px;align-items:baseline">
+            <span style="font-family:var(--font-mono);font-size:12px;color:var(--blue-400);min-width:52px">400ms</span>
+            <span style="color:var(--ink-70)">Card hover, panel open/close</span>
+          </div>
+          <div style="display:flex;gap:16px;align-items:baseline">
+            <span style="font-family:var(--font-mono);font-size:12px;color:var(--blue-400);min-width:52px">600ms</span>
+            <span style="color:var(--ink-70)">Page element entry (fade-rise)</span>
+          </div>
+          <div style="display:flex;gap:16px;align-items:baseline">
+            <span style="font-family:var(--font-mono);font-size:12px;color:var(--blue-400);min-width:52px">900ms</span>
+            <span style="color:var(--ink-70)">Hero section cascade, scroll reveal</span>
+          </div>
+          <div style="display:flex;gap:16px;align-items:baseline">
+            <span style="font-family:var(--font-mono);font-size:12px;color:var(--blue-400);min-width:52px">1800ms</span>
+            <span style="color:var(--ink-70)">Mascot idle — breathe, float</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="spacer-lg"></div>
+    <span class="label">Named Keyframes</span>
+    <div class="spacer-md"></div>
+    <div class="grid-3" style="gap:16px">
+      <div class="token-card">
+        <div class="token-name">fade-rise</div>
+        <div class="token-value" style="margin-top:4px">opacity 0→1 + translateY 28→0</div>
+        <div class="token-desc">Sections, hero content</div>
+      </div>
+      <div class="token-card">
+        <div class="token-name">float-y</div>
+        <div class="token-value" style="margin-top:4px">translateY 0 → -12px → 0, 5s</div>
+        <div class="token-desc">Mascot, hint bubbles</div>
+      </div>
+      <div class="token-card">
+        <div class="token-name">float-slow</div>
+        <div class="token-value" style="margin-top:4px">translate + rotate, 9s</div>
+        <div class="token-desc">Background orbs, code card</div>
+      </div>
+      <div class="token-card">
+        <div class="token-name">snake-breathe</div>
+        <div class="token-value" style="margin-top:4px">scale 1 → 1.025, 3.6s</div>
+        <div class="token-desc">Mascot idle body</div>
+      </div>
+      <div class="token-card">
+        <div class="token-name">snake-wave</div>
+        <div class="token-value" style="margin-top:4px">rotate -8° → 18°, 2.4s</div>
+        <div class="token-desc">Mascot arm</div>
+      </div>
+      <div class="token-card">
+        <div class="token-name">shimmer</div>
+        <div class="token-value" style="margin-top:4px">background-position sweep, 2.8s</div>
+        <div class="token-desc">XP bar, progress fills</div>
+      </div>
+      <div class="token-card">
+        <div class="token-name">unlock</div>
+        <div class="token-value" style="margin-top:4px">scale + rotate spring pop, 0.4s</div>
+        <div class="token-desc">Achievement badges</div>
+      </div>
+      <div class="token-card">
+        <div class="token-name">pulse</div>
+        <div class="token-value" style="margin-top:4px">opacity + scale, 2s</div>
+        <div class="token-desc">Live indicator dots</div>
+      </div>
+      <div class="token-card">
+        <div class="token-name">ripple</div>
+        <div class="token-value" style="margin-top:4px">scale 0→4 + fade out, 0.5s</div>
+        <div class="token-desc">Button click</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════ INTERACTIONS ════ -->
+  <section class="ds-section" id="interactions">
+    <div class="ds-section-header">
+      <span class="ds-section-tag">13 — Motion</span>
+      <h2 class="ds-section-title">Interactions</h2>
+      <p class="ds-section-desc">Every learner action gets a response. Silence = confusion. Even a wrong answer deserves an immediate funny reaction within 120ms.</p>
+    </div>
+    <div class="glass-card" style="padding:0;overflow:hidden">
+      <div style="padding:20px 24px;border-bottom:1px solid var(--glass-border);display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;font-size:12px;font-weight:600;color:var(--ink-50);letter-spacing:0.08em;text-transform:uppercase">
+        <span>Trigger</span><span>Response</span><span>Duration</span>
+      </div>
+      <div style="padding:14px 24px;border-bottom:1px solid var(--glass-border);display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;font-size:13px;background:rgba(255,255,255,0.01)">
+        <span style="color:var(--ink-90);font-weight:500">Hover button</span>
+        <span style="color:var(--ink-70)">translateY(-2px) scale(1.03) + shine sweep</span>
+        <span style="font-family:var(--font-mono);font-size:12px;color:var(--ink-50)">300ms ease-out</span>
+      </div>
+      <div style="padding:14px 24px;border-bottom:1px solid var(--glass-border);display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;font-size:13px;background:transparent">
+        <span style="color:var(--ink-90);font-weight:500">Click button</span>
+        <span style="color:var(--ink-70)">scale(0.97) + ripple wave</span>
+        <span style="font-family:var(--font-mono);font-size:12px;color:var(--ink-50)">80ms / 500ms</span>
+      </div>
+      <div style="padding:14px 24px;border-bottom:1px solid var(--glass-border);display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;font-size:13px;background:rgba(255,255,255,0.01)">
+        <span style="color:var(--ink-90);font-weight:500">Run code (success)</span>
+        <span style="color:var(--ink-70)">Green output fade-in + "+XP" toast + XP bar animate</span>
+        <span style="font-family:var(--font-mono);font-size:12px;color:var(--ink-50)">600ms cascade</span>
+      </div>
+      <div style="padding:14px 24px;border-bottom:1px solid var(--glass-border);display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;font-size:13px;background:transparent">
+        <span style="color:var(--ink-90);font-weight:500">Run code (error)</span>
+        <span style="color:var(--ink-70)">Red shake animation on code block + humorous toast</span>
+        <span style="font-family:var(--font-mono);font-size:12px;color:var(--ink-50)">400ms</span>
+      </div>
+      <div style="padding:14px 24px;border-bottom:1px solid var(--glass-border);display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;font-size:13px;background:rgba(255,255,255,0.01)">
+        <span style="color:var(--ink-90);font-weight:500">Achievement unlock</span>
+        <span style="color:var(--ink-70)">Badge scale-pop (spring) + confetti + chime</span>
+        <span style="font-family:var(--font-mono);font-size:12px;color:var(--ink-50)">900ms</span>
+      </div>
+      <div style="padding:14px 24px;border-bottom:1px solid var(--glass-border);display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;font-size:13px;background:transparent">
+        <span style="color:var(--ink-90);font-weight:500">Scroll into view</span>
+        <span style="color:var(--ink-70)">fade-rise on .reveal elements, staggered 70ms</span>
+        <span style="font-family:var(--font-mono);font-size:12px;color:var(--ink-50)">900ms</span>
+      </div>
+      <div style="padding:14px 24px;border-bottom:1px solid var(--glass-border);display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;font-size:13px;background:rgba(255,255,255,0.01)">
+        <span style="color:var(--ink-90);font-weight:500">Streak milestone</span>
+        <span style="color:var(--ink-70)">Full-screen overlay: mascot cheer + confetti rain</span>
+        <span style="font-family:var(--font-mono);font-size:12px;color:var(--ink-50)">2000ms</span>
+      </div>
+      <div style="padding:14px 24px;border-bottom:1px solid var(--glass-border);display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;font-size:13px;background:transparent">
+        <span style="color:var(--ink-90);font-weight:500">Hover lesson card</span>
+        <span style="color:var(--ink-70)">translateY(-6px) + blue glow border</span>
+        <span style="font-family:var(--font-mono);font-size:12px;color:var(--ink-50)">400ms</span>
+      </div>
+      <div style="padding:14px 24px;border-bottom:1px solid var(--glass-border);display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;font-size:13px;background:rgba(255,255,255,0.01)">
+        <span style="color:var(--ink-90);font-weight:500">Complete lesson</span>
+        <span style="color:var(--ink-70)">Checkmark draw animation + card glow</span>
+        <span style="font-family:var(--font-mono);font-size:12px;color:var(--ink-50)">600ms</span>
+      </div>
+      <div style="padding:14px 24px;border-bottom:1px solid var(--glass-border);display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;font-size:13px;background:transparent">
+        <span style="color:var(--ink-90);font-weight:500">New lesson unlock</span>
+        <span style="color:var(--ink-70)">Card appear with spring scale + lock icon dissolve</span>
+        <span style="font-family:var(--font-mono);font-size:12px;color:var(--ink-50)">500ms</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════ MASCOT ════ -->
+  <section class="ds-section" id="mascot">
+    <div class="ds-section-header">
+      <span class="ds-section-tag">14 — Brand</span>
+      <h2 class="ds-section-title">Mascot — Py</h2>
+      <p class="ds-section-desc">Py is the emotional heart of the platform. Plump, round, expressive — a cartoon Python snake with human energy. Always drawn in SVG (scalable, no pixelation). Four emotional variants, each for a specific context.</p>
+    </div>
+    <div class="grid-4" style="gap:20px">
+      <div class="mascot-frame">
+        <div class="demo-float">
+          <div style="width:120px;height:120px;border-radius:50%;background:radial-gradient(circle at 35% 30%, #6AC0FF, #0A5BBF);display:grid;place-items:center;box-shadow:0 20px 50px -15px rgba(10,132,255,0.7),inset 0 2px 0 rgba(255,255,255,0.4)">
+            <span style="font-size:56px">🐍</span>
+          </div>
+        </div>
+        <div class="mascot-variant-name">Py · wave</div>
+        <div class="mascot-usage"><strong style="color:var(--ink-90);display:block;margin-bottom:4px">Hero section, landing page, onboarding welcome</strong>Friendly greeting. Waving arm + tongue flick. Idle: breathe + float.</div>
+        <div class="chip chip-glass" style="font-family:var(--font-mono);font-size:11px">variant="wave"</div>
+      </div>
+      <div class="mascot-frame">
+        <div class="demo-float">
+          <div style="width:120px;height:120px;border-radius:50%;background:radial-gradient(circle at 35% 30%, #6AC0FF, #0A5BBF);display:grid;place-items:center;box-shadow:0 20px 50px -15px rgba(10,132,255,0.7),inset 0 2px 0 rgba(255,255,255,0.4)">
+            <span style="font-size:56px">🎊</span>
+          </div>
+        </div>
+        <div class="mascot-variant-name">Py · cheer</div>
+        <div class="mascot-usage"><strong style="color:var(--ink-90);display:block;margin-bottom:4px">Final CTA, completion screens, big moments</strong>Arms up, big smile, sparkles. Use with confetti.</div>
+        <div class="chip chip-glass" style="font-family:var(--font-mono);font-size:11px">variant="cheer"</div>
+      </div>
+      <div class="mascot-frame">
+        <div class="demo-float">
+          <div style="width:120px;height:120px;border-radius:50%;background:radial-gradient(circle at 35% 30%, #6AC0FF, #0A5BBF);display:grid;place-items:center;box-shadow:0 20px 50px -15px rgba(10,132,255,0.7),inset 0 2px 0 rgba(255,255,255,0.4)">
+            <span style="font-size:56px">🎉</span>
+          </div>
+        </div>
+        <div class="mascot-variant-name">Py · party</div>
+        <div class="mascot-usage"><strong style="color:var(--ink-90);display:block;margin-bottom:4px">Streak milestones, achievements, celebrations</strong>Party hat + confetti + open smile. Use sparingly — special moments only.</div>
+        <div class="chip chip-glass" style="font-family:var(--font-mono);font-size:11px">variant="party"</div>
+      </div>
+      <div class="mascot-frame">
+        <div class="demo-float">
+          <div style="width:120px;height:120px;border-radius:50%;background:radial-gradient(circle at 35% 30%, #6AC0FF, #0A5BBF);display:grid;place-items:center;box-shadow:0 20px 50px -15px rgba(10,132,255,0.7),inset 0 2px 0 rgba(255,255,255,0.4)">
+            <span style="font-size:56px">🤔</span>
+          </div>
+        </div>
+        <div class="mascot-variant-name">Py · think</div>
+        <div class="mascot-usage"><strong style="color:var(--ink-90);display:block;margin-bottom:4px">Lesson pages, hint states, mid-problem</strong>Contemplative eyes (no pupils), small mouth. "I'm thinking too."</div>
+        <div class="chip chip-glass" style="font-family:var(--font-mono);font-size:11px">variant="think"</div>
+      </div>
+    </div>
+    <div class="spacer-lg"></div>
+    <div class="glass-card" style="padding:24px">
+      <span class="label">Mascot Rules</span>
+      <div style="margin-top:16px;display:grid;grid-template-columns:1fr 1fr;gap:20px;font-size:13px;color:var(--ink-70);line-height:1.7">
+        <div>✅ Always use SVG — never raster at small sizes<br>✅ Body color is always blue (#0A84FF family)<br>✅ Belly is always orange (#FF9500 family)<br>✅ Pink cheek blush for cuteness, always present<br>✅ Eyes: pupils only in neutral/wave/party variants</div>
+        <div>❌ Never stretch or squash the SVG non-uniformly<br>❌ Never place on a light background<br>❌ Never use the party variant for errors<br>❌ Never remove the idle breathing animation<br>❌ Never show Py angry, sad, or judgmental</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════ VOICE ════ -->
+  <section class="ds-section" id="voice">
+    <div class="ds-section-header">
+      <span class="ds-section-tag">15 — Brand</span>
+      <h2 class="ds-section-title">Voice & Tone</h2>
+      <p class="ds-section-desc">We write like a brilliant, slightly chaotic best friend who happens to know Python really well. Smart but never smug. Encouraging but never condescending. Funny but never at the learner's expense.</p>
+    </div>
+    <div class="grid-2" style="gap:20px">
+      <div class="glass-card" style="padding:24px">
+        <div style="font-family:var(--font-display);font-size:22px;margin-bottom:10px">Encouraging</div>
+        <div style="font-size:13px;color:var(--ink-70);line-height:1.6;margin-bottom:14px">Lead with what they got right. Then gently course-correct.</div>
+        <div style="font-size:13px;font-style:italic;color:var(--blue-300);border-left:2px solid rgba(10,132,255,0.4);padding-left:14px;line-height:1.6">"So close! You got the logic spot-on — just swap those quote marks and it'll sing. 🎵"</div>
+      </div>
+      <div class="glass-card" style="padding:24px">
+        <div style="font-family:var(--font-display);font-size:22px;margin-bottom:10px">Playful</div>
+        <div style="font-size:13px;color:var(--ink-70);line-height:1.6;margin-bottom:14px">Use metaphors from real life. Food, games, animals always work.</div>
+        <div style="font-size:13px;font-style:italic;color:var(--blue-300);border-left:2px solid rgba(10,132,255,0.4);padding-left:14px;line-height:1.6">"Variables are just labeled boxes. Python is basically very organized storage chaos."</div>
+      </div>
+      <div class="glass-card" style="padding:24px">
+        <div style="font-family:var(--font-display);font-size:22px;margin-bottom:10px">Direct</div>
+        <div style="font-size:13px;color:var(--ink-70);line-height:1.6;margin-bottom:14px">Cut the filler. Every word earns its place. No "Please note that…"</div>
+        <div style="font-size:13px;font-style:italic;color:var(--blue-300);border-left:2px solid rgba(10,132,255,0.4);padding-left:14px;line-height:1.6">"Step 1: open a Python file. Step 2: type print(). Step 3: you're a programmer now."</div>
+      </div>
+      <div class="glass-card" style="padding:24px">
+        <div style="font-family:var(--font-display);font-size:22px;margin-bottom:10px">Human</div>
+        <div style="font-size:13px;color:var(--ink-70);line-height:1.6;margin-bottom:14px">Write how people actually talk. Contractions, casual, warm.</div>
+        <div style="font-size:13px;font-style:italic;color:var(--blue-300);border-left:2px solid rgba(10,132,255,0.4);padding-left:14px;line-height:1.6">"You're going to mess this up the first time. That's literally the whole point."</div>
+      </div>
+    </div>
+  </section>
+
+</main>
+</div>
+
+<script>
+// Sidebar active state on scroll
+const sections = document.querySelectorAll('.ds-section');
+const links = document.querySelectorAll('.nav-link');
+const io = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      links.forEach(l => l.classList.remove('active'));
+      const active = document.querySelector(`.nav-link[href="#${e.target.id}"]`);
+      if (active) active.classList.add('active');
+    }
+  });
+}, { threshold: 0.25 });
+sections.forEach(s => io.observe(s));
+</script>
+</body>
+</html>
